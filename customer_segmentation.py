@@ -33,7 +33,8 @@ print("\nPreprocessed Dataset:")
 print(df.head())
 
 # Save preprocessed dataset
-df.to_csv("Mall_Customer_Preprocessed.csv", index=False)
+df.to_csv("Mall_Customer_Preprocessed.csv", index=False, sep=",",
+    encoding="utf-8-sig")
 
 
 
