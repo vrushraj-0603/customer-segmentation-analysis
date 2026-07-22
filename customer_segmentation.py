@@ -108,6 +108,7 @@ plt.close()
 # 6. Save Clustered Dataset
 # ==========================
 
-df.to_csv("Mall_Customer_Clustered.csv", index=False)
+df.to_csv("Mall_Customer_Clustered.csv", index=False, sep=",",
+    encoding="utf-8-sig")
 
 print("\nClustered dataset saved successfully!")
