@@ -4,33 +4,59 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 
-st.title("Customer Segmentation Analysis")
+st.set_page_config(page_title="Customer Segmentation", layout="wide")
+
+st.title("Customer Segmentation Analysis using K-Means")
+
+st.sidebar.header("Project Information")
+st.sidebar.write("Upload the Mall_Customers.csv dataset to perform customer segmentation.")
 
 uploaded_file = st.file_uploader("Upload Mall_Customers.csv", type=["csv"])
 
 if uploaded_file is not None:
 
+    # Load Dataset
     df = pd.read_csv(uploaded_file)
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-    df = df.drop("CustomerID", axis=1)
+    # Remove CustomerID if present
+    if "CustomerID" in df.columns:
+        df = df.drop("CustomerID", axis=1)
 
+    # Select Features
+    features = df[[
+        "Age",
+        "Annual Income (k$)",
+        "Spending Score (1-100)"
+    ]]
+
+    # Scale Data
     scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(features)
 
-    features = df[['Age',
-                   'Annual Income (k$)',
-                   'Spending Score (1-100)']]
+    # K-Means Clustering
+    kmeans = KMeans(n_clusters=5, random_state=42, n_init=10)
+    df["Cluster"] = kmeans.fit_predict(scaled_data)
 
-    scaled = scaler.fit_transform(features)
+    # KPIs
+    col1, col2 = st.columns(2)
 
-    kmeans = KMeans(n_clusters=5, random_state=42)
+    with col1:
+        st.metric("Total Customers", len(df))
 
-    df["Cluster"] = kmeans.fit_predict(scaled)
+    with col2:
+        st.metric("Total Clusters", df["Cluster"].nunique())
 
     st.subheader("Clustered Data")
     st.dataframe(df.head())
+
+    st.subheader("Customers per Cluster")
+    st.write(df["Cluster"].value_counts().sort_index())
+
+    # Scatter Plot
+    st.subheader("Customer Segmentation")
 
     fig, ax = plt.subplots(figsize=(8,6))
 
@@ -38,19 +64,24 @@ if uploaded_file is not None:
         df["Annual Income (k$)"],
         df["Spending Score (1-100)"],
         c=df["Cluster"],
-        cmap="viridis"
+        cmap="viridis",
+        s=60
     )
 
-    ax.set_xlabel("Annual Income")
-    ax.set_ylabel("Spending Score")
+    ax.set_xlabel("Annual Income (k$)")
+    ax.set_ylabel("Spending Score (1-100)")
+    ax.set_title("Customer Segmentation")
+
+    plt.colorbar(scatter, label="Cluster")
 
     st.pyplot(fig)
 
+    # Download CSV
     csv = df.to_csv(index=False).encode("utf-8")
 
     st.download_button(
-        "Download Clustered CSV",
-        csv,
-        "Mall_Customer_Clustered.csv",
-        "text/csv"
+        label="Download Clustered CSV",
+        data=csv,
+        file_name="Mall_Customer_Clustered.csv",
+        mime="text/csv"
     )
